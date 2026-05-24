@@ -23,6 +23,7 @@ curl json.fstwthr.com/tokyo
 curl 'fstwthr.com/london?units=metric&voice=snark'
 curl 'fstwthr.com/denver?format=3'        # wttr.in-style one-liner
 curl fstwthr.com/80302                    # any US ZIP code
+curl -o radar.png fstwthr.com/boulder/radar.png   # current radar tile (US)
 ```
 
 Sample plain-text output (`curl fstwthr.com/boulder`):
@@ -98,6 +99,29 @@ Query params layer on top of every format:
 
 Tier-1 disambiguation uses population — `/london` resolves to London,
 GB (~9M) over London, KY (~7k). `/london,ky` forces the US town.
+
+---
+
+## Radar
+
+Current-frame precipitation radar as a PNG, one tile per US city:
+
+```bash
+curl -o boulder.png fstwthr.com/boulder/radar.png
+```
+
+| | |
+| --- | --- |
+| URL | `/<slug>/radar.png` — same slug resolution as the text endpoints |
+| Image | 250×250 PNG, NWS-style intensity colormap (light green → yellow → red), a ~250 km square (±125 km) centered on the city at MRMS's 1 km resolution |
+| Source | NOAA [MRMS](https://www.nssl.noaa.gov/projects/mrms/) `PrecipRate` (mm/hr), refreshed every 5 minutes |
+| Freshness | `X-Radar-Ts` response header stamps the source frame time; edge-cached `s-maxage=300, stale-while-revalidate=3600` like every other surface |
+| Coverage | US only — non-US slugs return `404` (MRMS has no global data) |
+
+Precipitation below 0.1 mm/hr renders fully transparent, so a dry city
+returns an essentially blank tile — that's expected, not an error.
+Overlay it on your own basemap, or just eyeball it:
+`fstwthr.com/<your-city>/radar.png`.
 
 ---
 
@@ -187,9 +211,11 @@ separately so the hot path is sub-50 ms globally.
 ```
 
 A sibling Cloudflare Container parses [MRMS](https://www.nssl.noaa.gov/projects/mrms/)
-radar tiles every five minutes and writes per-gridpoint
-"rain-on-radar" records into shared KV; the main worker surfaces
-those as a one-sentence clause in the natural-language summary.
+radar tiles every five minutes. It writes per-gridpoint
+"rain-on-radar" records into shared KV — surfaced by the main worker
+as a one-sentence clause in the natural-language summary — and renders
+the per-city radar PNGs served at `/<slug>/radar.png` (see
+[Radar](#radar)) into a private R2 bucket the worker proxies.
 
 ---
 

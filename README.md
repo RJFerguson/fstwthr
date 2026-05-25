@@ -161,7 +161,7 @@ Continue, Cline, Zed, VS Code, and the MCP Inspector.
 | `get_forecast(location, days?, units?)` | 7-day forecast with hi/lo, sunrise/sunset, moon phase. |
 | `get_alerts(location)` | Active severe-weather alerts (US-only; NOAA-sourced). |
 | `get_best_window(location, activity?, units?)` | "Good time to go outside" recommendation across today/tomorrow. |
-| `get_nowcast(location)` | Radar-derived current precipitation (US-only). |
+| `get_nowcast(location)` | Radar-derived precipitation — current state plus a motion estimate of when it starts/ends ("rain starting in ~12 min", US-only). |
 
 ### Resources
 
@@ -213,7 +213,9 @@ separately so the hot path is sub-50 ms globally.
 A sibling Cloudflare Container parses [MRMS](https://www.nssl.noaa.gov/projects/mrms/)
 radar tiles every five minutes. It writes per-gridpoint
 "rain-on-radar" records into shared KV — surfaced by the main worker
-as a one-sentence clause in the natural-language summary — and renders
+as a one-sentence clause in the natural-language summary, including a
+motion-derived "starting in ~12 min" / "easing in ~25 min" estimate —
+and renders
 the per-city radar PNGs served at `/<slug>/radar.png` (see
 [Radar](#radar)) into a private R2 bucket the worker proxies.
 

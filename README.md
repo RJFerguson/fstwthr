@@ -268,6 +268,10 @@ interest. We're not accepting source PRs since the codebase is
 private, but real-world bug reports (especially around location
 resolution or unusual MCP clients) are very welcome.
 
+**What about privacy?**
+No accounts, no cookies, no advertising, no third-party tracking, and
+no per-user records. Full policy: [fstwthr.com/privacy](https://fstwthr.com/privacy).
+
 **What's the license?**
 This docs repo is MIT. The hosted service is not open source.
 

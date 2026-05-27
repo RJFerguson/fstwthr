@@ -113,15 +113,22 @@ curl -o boulder.png fstwthr.com/boulder/radar.png
 | | |
 | --- | --- |
 | URL | `/<slug>/radar.png` — same slug resolution as the text endpoints |
-| Image | 250×250 PNG, NWS-style intensity colormap (light green → yellow → red), a ~250 km square (±125 km) centered on the city at MRMS's 1 km resolution |
+| Image | 250×250 PNG, NWS-style intensity colormap (light green → yellow → red) over a line-art basemap (county/state borders + city labels), a ~250 km square (±125 km) centered on the city at MRMS's 1 km resolution |
 | Source | NOAA [MRMS](https://www.nssl.noaa.gov/projects/mrms/) `PrecipRate` (mm/hr), refreshed every 5 minutes |
 | Freshness | `X-Radar-Ts` response header stamps the source frame time; edge-cached `s-maxage=300, stale-while-revalidate=3600` like every other surface |
 | Coverage | US only — non-US slugs return `404` (MRMS has no global data) |
 
-Precipitation below 0.1 mm/hr renders fully transparent, so a dry city
-returns an essentially blank tile — that's expected, not an error.
-Overlay it on your own basemap, or just eyeball it:
+Precipitation below 0.1 mm/hr is transparent, so a dry city just shows
+the basemap (county/state borders + nearby city labels) with no
+precip overlay — that's expected, not an error. Eyeball it directly:
 `fstwthr.com/<your-city>/radar.png`.
+
+The modern web page (US cities) shows the same radar inline: it loads
+the static tile first, then lazy-upgrades to a looping animation after
+the page finishes loading. And the MCP `get_nowcast` tool renders an
+**animated radar widget** in Apps-capable clients — looping the last
+few frames (play/pause, frame-time readout, intensity legend) with a
+"rain starting / easing in ~N min" status line on top.
 
 ---
 
@@ -161,7 +168,7 @@ Continue, Cline, Zed, VS Code, and the MCP Inspector.
 | `get_forecast(location, days?, units?)` | 7-day forecast with hi/lo, sunrise/sunset, moon phase. |
 | `get_alerts(location)` | Active severe-weather alerts (US-only; NOAA-sourced). |
 | `get_best_window(location, activity?, units?)` | "Good time to go outside" recommendation across today/tomorrow. |
-| `get_nowcast(location)` | Radar-derived precipitation — current state plus a motion estimate of when it starts/ends ("rain starting in ~12 min", US-only). |
+| `get_nowcast(location)` | Radar-derived precipitation — current state plus a motion estimate of when it starts/ends ("rain starting in ~12 min", US-only). In Apps clients, renders an animated multi-frame radar widget. |
 
 ### Resources
 
